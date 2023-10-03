@@ -1,0 +1,151 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Título de la página</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+El Programa corrió por primera vez el: <p id="displayHours"></p> <p id="displayMinutes"></p> <p id="displaySeconds"></p>
+
+
+    <script>
+
+        var displayHours = document.getElementById('displayHours');
+        var displayMinutes = document.getElementById('displayMinutes');
+        var displaySeconds = document.getElementById('displaySeconds');
+
+        var currentTime = new Date();
+
+        displayHours.innerHTML = currentTime.getHours() + " hrs";
+        displayMinutes.innerHTML = currentTime.getMinutes() + " min";
+        displaySeconds.innerHTML = currentTime.getSeconds() + " sec";
+
+    </script>
+    <style>
+        /* Estilo para el pie de página */
+        #footer {
+            text-align: center;
+            padding: 10px;
+        }
+
+        .masculino {
+            background-color: blue; /* Color de fondo para Masculino */
+            color: white; /* Color de texto para Masculino */
+        }
+
+        .femenino {
+            background-color: pink; /* Color de fondo para Femenino */
+            color: white; /* Color de texto para Femenino */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Lista de Datos</h1>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped" id="dermaliadata">
+                <thead>
+                    <tr>
+                        <th>Primer Apellido</th>
+                        <th>Segundo Apellido</th>
+                        <th>Nombres</th>
+                        <th>Sexo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Contenido de la tabla -->
+                </tbody>
+                <tfoot>
+                    <tr id="footer">
+                        <td colspan="4">
+                            <div id="registroModificado" style="display: none;"></div>
+                            <div id="porcentajeSexo"></div>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+    <script>
+        $(document).ready(function () {
+            var hombres = 0;
+            var mujeres = 0;
+
+            $.getJSON("https://pos.dermalia.mx/webforms/data", function (data) {
+                var dermaliadata = '';
+                $.each(data, function (key, value) {
+                    dermaliadata += '<tr>';
+                    dermaliadata += '<td>' + value.primerApellido + '</td>';
+                    dermaliadata += '<td>' + value.segundoApellido + '</td>';
+                    dermaliadata += '<td>' + value.nombres + '</td>';
+                    dermaliadata += '<td>';
+                    dermaliadata += '<select class="form-control gender" id="Select1">';
+                    dermaliadata += '<option value="' + value.sexo + '">' + value.sexo + '</option>';
+                    dermaliadata += '<option value="Masculino">Masculino</option>';
+                    dermaliadata += '<option value="Femenino">Femenino</option>';
+                    dermaliadata += '</select>';
+                    dermaliadata += '</td>';
+                    dermaliadata += '</tr>';
+                });
+                $('#dermaliadata tbody').html(dermaliadata);
+
+                // Detectar cambios en el combo
+                $('.gender').on('change', function () {
+                    var selectedValue = $(this).val();
+                    var clientName = $(this).closest('tr').find('td:eq(2)').text();
+                    $('#registroModificado').html('Registro Modificado');
+                    $('#porcentajeSexo').html(clientName + ' (' + selectedValue + ')');
+
+                    // Actualizar color de fondo
+                    if (selectedValue === 'Masculino') {
+                        $('#footer').removeClass('femenino').addClass('masculino');
+                    } else if (selectedValue === 'Femenino') {
+                        $('#footer').removeClass('masculino').addClass('femenino');
+                    } else {
+                        $('#footer').removeClass('masculino femenino');
+                    }
+
+                    // Calcular y mostrar porcentaje actualizado
+                    hombres = 0;
+                    mujeres = 0;
+                    $('.gender').each(function () {
+                        if ($(this).val() === 'M') {
+                            hombres++;
+                        } else if ($(this).val() === 'F') {
+                            mujeres++;
+                        }
+                    });
+
+                    var total = hombres + mujeres;
+                    var porcentajeHombres = ((hombres / total) * 100).toFixed(2);
+                    var porcentajeMujeres = ((mujeres / total) * 100).toFixed(2);
+                    $('#porcentajeSexo').append('<br>Hombres: ' + porcentajeHombres + '%, Mujeres: ' + porcentajeMujeres + '%');
+
+                    // Mostrar elementos en el footer
+                    $('#registroModificado').show();
+                });
+
+                // Calcular y mostrar porcentaje inicial
+                hombres = 0;
+                mujeres = 0;
+                $('.gender').each(function () {
+                    if ($(this).val() === 'M') {
+                        hombres++;
+                    } else if ($(this).val() === 'F') {
+                        mujeres++;
+                    }
+                });
+
+                var total = hombres + mujeres;
+                var porcentajeHombres = ((hombres / total) * 100).toFixed(2);
+                var porcentajeMujeres = ((mujeres / total) * 100).toFixed(2);
+                $('#porcentajeSexo').html('Hombres: ' + porcentajeHombres + '%, Mujeres: ' + porcentajeMujeres + '%');
+            });
+        });
+    </script>
+</body>
+</html>
+
